@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        VITE_SOME_KEY: New
+    ports:
+      - "8080:80"
