@@ -4,6 +4,8 @@ COPY ./ /app
 
 ARG VITE_SOME_KEY
 ENV VITE_SOME_KEY=${VITE_SOME_KEY}
+ARG VITE_URL_API
+ENV VITE_URL_API=${VITE_URL_API}
 
 WORKDIR /app
 RUN npm install && npm run build

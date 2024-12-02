@@ -1,22 +1,78 @@
 import { useState } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery, useMutation } from 'react-query';
 import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
 
 function App() {
+  // קריאה ל-API לקבלת greeting
+  const { data: greeting, error: greetingError, isLoading: isGreetingLoading } = useQuery(
+    'greeting',
+    async () => {
+      const response = await fetch(`${import.meta.env.VITE_URL_API}/greeting`);
+      const result = await response.json();
+      return result.greeting;
+    }
+  );
+
+  // קריאה ל-API לקבלת count
+  const {
+    data: serverCount,
+    error: countError,
+    isLoading: isCountLoading,
+    refetch, // פונקציה לעדכון מחדש של הנתונים
+  } = useQuery(
+    'count',
+    async () => {
+      const response = await fetch(`${import.meta.env.VITE_URL_API}/count`);
+      const result = await response.json();
+      return result.count;
+    },
+    {
+      onSuccess: (data) => setCount(data || 0), // עדכון ה-state של count בזמן הטעינה
+    }
+  );
+
+  // ניהול ה-count בשרת
+  const { mutate: updateCount, isLoading: isUpdating } = useMutation(
+    async (newCount) => {
+      const response = await fetch(`${import.meta.env.VITE_URL_DEV}/count`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: newCount }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update count');
+      }
+      return response.json();
+    },
+    {
+      onSuccess: () => {
+        refetch(); // עדכון הערך מקומי לאחר שמירתו בשרת
+      },
+    }
+  );
+
+  // ניהול ה-state המקומי של count
   const [count, setCount] = useState(0);
 
-  // קריאה ל-API בעזרת useQuery
-  const { data: greeting, error, isLoading } = useQuery('greeting', async () => {
-    const response = await fetch('http://localhost:8081/greeting');
-    console.log(response)
-    const result = await response.json();
-    return result.greeting;
-  });
+  // פונקציה לעדכון count בלחיצה
+  const handleIncrement = () => {
+    setCount((prev) => prev + 1); // עדכון מקומי מידי
+    updateCount(count + 1); // שליחה לשרת
+  };
 
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>; // טיפול בשגיאה
+  // פונקציה לעדכון count בהפחתה
+  const handleDecrement = () => {
+    setCount((prev) => (prev > 0 ? prev - 1 : 0)); // לא מאפשר ערך שלילי
+    updateCount(Math.max(count - 1, 0)); // שליחה לשרת עם הגבלה למינימום 0
+  };
+
+  // בדיקת טעינה ושגיאות
+  if (isGreetingLoading || isCountLoading) return <p>Loading...</p>;
+  if (greetingError || countError) {
+    return <p>Error: {greetingError?.message || countError?.message}</p>;
+  }
 
   return (
     <>
@@ -29,11 +85,15 @@ function App() {
         </a>
       </div>
       <h1>Hello Or Moshe {import.meta.env.VITE_SOME_KEY}</h1>
-      <p>{greeting}</p> {/* הצגת ה-greeting */}
+      <p>{greeting}</p>
       <div className="card">
-        <button onClick={() => setCount(count + 1)}>
-          count is {count}
+        <button onClick={handleIncrement} disabled={isUpdating}>
+          {isUpdating ? 'Updating...' : 'Increment'}
         </button>
+        <button onClick={handleDecrement} disabled={isUpdating} style={{ marginLeft: '10px' }}>
+          {isUpdating ? 'Updating...' : 'Decrement'}
+        </button>
+        <p>Count is: {count}</p>
         <p>
           Edit <code>src/App.jsx</code> and save to test HMR
         </p>
