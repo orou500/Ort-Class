@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useQuery, useMutation } from 'react-query';
 import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
@@ -20,20 +19,21 @@ function App() {
     data: serverCount,
     error: countError,
     isLoading: isCountLoading,
-    refetch, // פונקציה לעדכון מחדש של הנתונים
+    refetch,
   } = useQuery(
     'count',
     async () => {
       const response = await fetch(`${import.meta.env.VITE_URL_API}/count`);
       const result = await response.json();
-      return result.count;
-    },
-    {
-      onSuccess: (data) => setCount(data || 0), // עדכון ה-state של count בזמן הטעינה
+      if(typeof result !== 'object' || result === null) {
+        return result
+      } else {
+        return result.count;
+      }
     }
   );
 
-  // ניהול ה-count בשרת
+  // ניהול count בשרת
   const { mutate: updateCount, isLoading: isUpdating } = useMutation(
     async (newCount) => {
       const response = await fetch(`${import.meta.env.VITE_URL_API}/count`, {
@@ -47,29 +47,23 @@ function App() {
       return response.json();
     },
     {
-      onSuccess: () => {
-        refetch(); // עדכון הערך מקומי לאחר שמירתו בשרת
-      },
+      onSuccess: () => refetch(),
     }
   );
 
-  // ניהול ה-state המקומי של count
-  const [count, setCount] = useState(0);
-
-  // פונקציה לעדכון count בלחיצה
+  // פונקציות לטיפול בלחיצות
   const handleIncrement = () => {
-    setCount((prev) => prev + 1); // עדכון מקומי מידי
-    updateCount(count + 1); // שליחה לשרת
+    updateCount(serverCount + 1); // שימוש בערך משרת
   };
 
-  // פונקציה לעדכון count בהפחתה
   const handleDecrement = () => {
-    setCount((prev) => (prev > 0 ? prev - 1 : 0)); // לא מאפשר ערך שלילי
-    updateCount(Math.max(count - 1, 0)); // שליחה לשרת עם הגבלה למינימום 0
+    updateCount(Math.max(serverCount - 1, 0)); // לא מאפשר ערך שלילי
   };
 
-  // בדיקת טעינה ושגיאות
-  if (isGreetingLoading || isCountLoading) return <p>Loading...</p>;
+  // בדיקות טעינה ושגיאות
+  const isGlobalLoading = isGreetingLoading || isCountLoading || isUpdating;
+
+  if (isGlobalLoading) return <p>Loading...</p>;
   if (greetingError || countError) {
     return <p>Error: {greetingError?.message || countError?.message}</p>;
   }
@@ -87,13 +81,13 @@ function App() {
       <h1>Hello Or Moshe {import.meta.env.VITE_SOME_KEY}</h1>
       <p>{greeting}</p>
       <div className="card">
-        <button onClick={handleIncrement} disabled={isUpdating}>
+        <button onClick={handleIncrement} disabled={isUpdating || isCountLoading}>
           {isUpdating ? 'Updating...' : 'Increment'}
         </button>
-        <button onClick={handleDecrement} disabled={isUpdating} style={{ marginLeft: '10px' }}>
+        <button onClick={handleDecrement} disabled={isUpdating || isCountLoading} style={{ marginLeft: '10px' }}>
           {isUpdating ? 'Updating...' : 'Decrement'}
         </button>
-        <p>Count is: {count}</p>
+        <p>Count is: {serverCount}</p>
         <p>
           Edit <code>src/App.jsx</code> and save to test HMR
         </p>
