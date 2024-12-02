@@ -9,7 +9,7 @@ function App() {
 
   // קריאה ל-API בעזרת useQuery
   const { data: greeting, error, isLoading } = useQuery('greeting', async () => {
-    const response = await fetch('http://localhost:3000/greeting');
+    const response = await fetch('http://localhost:8081/greeting');
     console.log(response)
     const result = await response.json();
     return result.greeting;
