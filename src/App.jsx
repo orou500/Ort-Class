@@ -36,7 +36,7 @@ function App() {
   // ניהול ה-count בשרת
   const { mutate: updateCount, isLoading: isUpdating } = useMutation(
     async (newCount) => {
-      const response = await fetch(`${import.meta.env.VITE_URL_DEV}/count`, {
+      const response = await fetch(`${import.meta.env.VITE_URL_API}/count`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ count: newCount }),
