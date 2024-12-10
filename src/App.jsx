@@ -78,7 +78,7 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>Hello Or Moshe {import.meta.env.VITE_SOME_KEY}</h1>
+      <h1>Hello Or Moshe, {import.meta.env.VITE_SOME_KEY}</h1>
       <p>{greeting}</p>
       <div className="card">
         <button onClick={handleIncrement} disabled={isUpdating || isCountLoading}>
