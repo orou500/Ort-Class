@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                    git branch: 'main', url: 'http://localhost:3000/sizex/Ort-Class.git'
+                    git branch: 'main', url: 'http://gitea:3000/sizex/Ort-Class.git'
             }
         }
 
